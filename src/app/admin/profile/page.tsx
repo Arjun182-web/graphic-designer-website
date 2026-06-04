@@ -6,6 +6,7 @@ import { ProtectedAdminRoute } from '@/components/admin/ProtectedRoute';
 
 function ProfileContent() {
   const [file, setFile] = useState<File | null>(null);
+  const [profileId, setProfileId] = useState('');
   const [bio, setBio] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -15,9 +16,10 @@ function ProfileContent() {
     fetch('/api/profile')
       .then((r) => r.json())
       .then((data) => {
-        setBio(data?.bio || '');
-        setPreview(data?.src || null);
-      });
+  setProfileId(data.id);
+  setBio(data.bio || '');
+  setPreview(data.image_url || null);
+});
   }, []);
 
   function toBase64(file: File) {
@@ -43,15 +45,20 @@ function ProfileContent() {
       }
 
       const res = await fetch('/api/profile', {
-        method: 'POST',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ b64, filename, bio, alt: 'Profile image' }),
+        body: JSON.stringify({
+  id: profileId,
+  bio,
+  b64,
+  filename,
+}),
       });
 
       if (!res.ok) throw new Error('Save failed');
       const data = await res.json();
       setMessage('Profile updated');
-      setPreview(data.src || preview);
+      setPreview(data.image_url || preview);
       setFile(null);
     } catch (err: any) {
       setMessage(err?.message || 'Error saving');

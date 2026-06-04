@@ -1,30 +1,110 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readProfile, writeProfile, saveProfileImage } from '../../../lib/profile';
+import { supabase } from '@/lib/supabase';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const profile = readProfile();
-  return NextResponse.json(profile);
+  const { data, error } = await supabase
+    .from('profile')
+    .select('*')
+    .single();
+
+  console.log('GET PROFILE:', data);
+
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json(data);
 }
 
-export async function POST(req: NextRequest) {
+export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { b64, filename, bio, alt } = body as { b64?: string; filename?: string; bio?: string; alt?: string };
 
-    const profile = readProfile();
+    const {
+      id,
+      bio,
+      b64,
+      filename,
+    } = body;
+
+    let image_url;
 
     if (b64 && filename) {
-      const src = await saveProfileImage(filename, b64);
-      profile.src = src;
-      profile.alt = alt || profile.alt || 'Profile image';
+      const matches = b64.match(
+        /^data:([A-Za-z-+/]+);base64,(.+)$/
+      );
+
+      const fileData = matches
+        ? matches[2]
+        : b64;
+
+      const buffer = Buffer.from(
+        fileData,
+        'base64'
+      );
+
+      const { error: uploadError } =
+        await supabase.storage
+          .from('portfolio-images')
+          .upload(filename, buffer, {
+            contentType: 'image/jpeg',
+            upsert: true,
+          });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: publicUrlData } =
+        supabase.storage
+          .from('portfolio-images')
+          .getPublicUrl(filename);
+
+      image_url =
+        publicUrlData.publicUrl;
     }
 
-    if (typeof bio === 'string') profile.bio = bio;
-    profile.updatedAt = new Date().toISOString();
+    const updateData: any = {
+      bio,
+    };
 
-    writeProfile(profile);
-    return NextResponse.json(profile, { status: 200 });
+    if (image_url) {
+      updateData.image_url = image_url;
+    }
+
+    const { data, error } =
+  await supabase
+    .from('profile')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+console.log("UPDATED DATA:", data);
+console.log("UPDATE ERROR:", error);
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(data);
+
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Profile update failed' }, { status: 500 });
-  }
+  console.error('PROFILE UPDATE ERROR:', err);
+
+  return NextResponse.json(
+    {
+      error: err?.message || 'Update failed',
+    },
+    { status: 500 }
+  );
+}
 }

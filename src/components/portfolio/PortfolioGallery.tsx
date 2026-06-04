@@ -71,7 +71,7 @@ export default function PortfolioGallery({ filter = 'all' }: PortfolioGalleryPro
             {visible.map((it) => (
               <article key={it.id} className="masonry-item rounded-[24px] overflow-hidden mb-6 cursor-zoom-in" onClick={() => setSelected(it)}>
                 <div className="relative w-full h-72 sm:h-96 transition-transform duration-500 hover:scale-105">
-                  <Image src={it.src} alt={it.alt || it.title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" priority={false} />
+                  <Image src={it.image_url} alt={it.alt || it.title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" priority={false} />
                 </div>
                 <div className="p-4 bg-dark-900 border border-white/6">
                   <div className="flex items-center justify-between">

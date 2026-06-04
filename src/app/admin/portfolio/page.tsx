@@ -142,7 +142,7 @@ function PortfolioContent() {
           {items.map((it) => (
             <div key={it.id} className="rounded-2xl border border-white/8 overflow-hidden bg-white/3">
               <div className="relative h-48 bg-dark-800">
-                <Image src={it.src} alt={it.title} fill style={{ objectFit: 'cover' }} />
+                <Image src={it.image_url} alt={it.title} fill style={{ objectFit: 'cover' }} />
               </div>
               <div className="p-4">
                 <h4 className="text-silver font-semibold">{it.title}</h4>

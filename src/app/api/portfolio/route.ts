@@ -1,44 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import { addPortfolioItem, getAllPortfolioItems } from '../../../lib/portfolio';
-
-const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
+import { supabase } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function GET() {
-  const items = getAllPortfolioItems();
-  return NextResponse.json(items);
+  const { data, error } = await supabase
+    .from('portfolio')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json(data);
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { filename, b64, title, category, alt } = body as {
-      filename: string;
-      b64: string;
-      title: string;
-      category: string;
-      alt?: string;
-    };
 
-    if (!filename || !b64) {
-      return NextResponse.json({ error: 'Missing file data' }, { status: 400 });
+    const {
+      filename,
+      b64,
+      title,
+      category
+    } = body;
+
+    const fileName = `${uuidv4()}-${filename}`;
+
+    const matches = b64.match(
+      /^data:([A-Za-z-+/]+);base64,(.+)$/
+    );
+
+    const fileData = matches ? matches[2] : b64;
+
+    const buffer = Buffer.from(
+      fileData,
+      'base64'
+    );
+
+    const { error: uploadError } =
+      await supabase.storage
+        .from('portfolio-images')
+        .upload(fileName, buffer, {
+          contentType: 'image/jpeg',
+          upsert: false,
+        });
+
+    if (uploadError) {
+      throw uploadError;
     }
 
-    if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    const {
+      data: publicUrlData,
+    } = supabase.storage
+      .from('portfolio-images')
+      .getPublicUrl(fileName);
 
-    // decode base64 (data:image/...;base64,...) if present
-    const matches = b64.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
-    const data = matches ? matches[2] : b64;
-    const buffer = Buffer.from(data, 'base64');
-    const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '-');
-    const filePath = path.join(UPLOADS_DIR, safeName);
-    fs.writeFileSync(filePath, buffer);
+    const imageUrl =
+      publicUrlData.publicUrl;
 
-    const item = await addPortfolioItem({ title, category, filename: safeName, alt });
+    const { data, error } =
+      await supabase
+        .from('portfolio')
+        .insert([
+          {
+            title,
+            category,
+            image_url: imageUrl,
+          },
+        ])
+        .select()
+        .single();
 
-    return NextResponse.json(item, { status: 201 });
+    if (error) throw error;
+
+    return NextResponse.json(data);
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Upload failed' }, { status: 500 });
-  }
+  console.error('UPLOAD ERROR:', err);
+
+  return NextResponse.json(
+    {
+      error: err?.message || 'Upload failed',
+    },
+    { status: 500 }
+  );
+}
 }
