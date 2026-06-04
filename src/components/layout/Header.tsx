@@ -23,31 +23,35 @@ export default function Header() {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-silver/85 hover:text-gold-500 transition duration-300 text-sm uppercase tracking-[0.22em]"
-              >
-                {item.name}
-              </Link>
-            ))}
-          </div>
+  {navItems.map((item) => (
+    <Link
+      key={item.name}
+      href={item.href}
+      className="text-silver/85 hover:text-gold-500 transition duration-300 text-sm uppercase tracking-[0.22em]"
+    >
+      {item.name}
+    </Link>
+  ))}
+</div>
 
-          <div className="hidden md:flex items-center gap-4">
-            <Link href="/contact" className="btn-primary inline-flex">
-              Contact
-            </Link>
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              aria-label="Toggle menu"
-              className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-dark-900/90 text-gold-400 shadow-lg shadow-black/30 transition duration-300 hover:bg-dark-800 focus:outline-none focus:ring-4 focus:ring-gold-500/20"
-            >
-              <span className={`block h-0.5 w-5 bg-gold-500 transition-transform duration-300 ${isOpen ? 'translate-y-1.5 rotate-45' : ''}`} />
-              <span className={`block h-0.5 w-5 bg-gold-500 my-1 transition-opacity duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`} />
-              <span className={`block h-0.5 w-5 bg-gold-500 transition-transform duration-300 ${isOpen ? '-translate-y-1.5 -rotate-45' : ''}`} />
-            </button>
-          </div>
+<div className="flex items-center gap-4">
+  <Link
+    href="/contact"
+    className="btn-primary hidden md:inline-flex"
+  >
+    Contact
+  </Link>
+
+  <button
+    onClick={() => setIsOpen(!isOpen)}
+    aria-label="Toggle menu"
+    className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-dark-900/90 text-gold-400 shadow-lg shadow-black/30 transition duration-300 hover:bg-dark-800 focus:outline-none focus:ring-4 focus:ring-gold-500/20"
+  >
+    <span className={`block h-0.5 w-5 bg-gold-500 transition-transform duration-300 ${isOpen ? 'translate-y-1.5 rotate-45' : ''}`} />
+    <span className={`block h-0.5 w-5 bg-gold-500 my-1 transition-opacity duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`} />
+    <span className={`block h-0.5 w-5 bg-gold-500 transition-transform duration-300 ${isOpen ? '-translate-y-1.5 -rotate-45' : ''}`} />
+  </button>
+</div>
         </div>
 
         <MobileMenu isOpen={isOpen} setIsOpen={setIsOpen} navItems={navItems} />
