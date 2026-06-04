@@ -11,6 +11,7 @@ type Item = {
   id: string;
   title: string;
   category: string;
+  image_url: string;
   src: string;
   alt?: string;
   createdAt?: string;
