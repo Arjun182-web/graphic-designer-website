@@ -12,7 +12,6 @@ type Item = {
   title: string;
   category: string;
   image_url: string;
-  src: string;
   alt?: string;
   createdAt?: string;
 };
@@ -93,7 +92,13 @@ export default function PortfolioGallery({ filter = 'all' }: PortfolioGalleryPro
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4" onClick={() => setSelected(null)}>
           <div className="w-full max-w-6xl h-[80vh] rounded-[28px] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="relative w-full h-full bg-black">
-              <Image src={selected.src} alt={selected.alt || selected.title} fill style={{ objectFit: 'contain' }} sizes="100vw" />
+              <Image
+  src={selected.image_url}
+  alt={selected.alt || selected.title}
+  fill
+  style={{ objectFit: 'contain' }}
+  sizes="100vw"
+/>
               <button onClick={() => setSelected(null)} className="absolute top-6 right-6 rounded-full border border-white/10 bg-dark-900/80 px-3 py-2 text-sm text-silver">Close</button>
             </div>
           </div>
